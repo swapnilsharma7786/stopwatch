@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Gold Stopwatch</title>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@200;900&display=swap" rel="stylesheet"/>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;1,300&display=swap" rel="stylesheet"/>
+        <style>
+            body {
+                background-color: #000000;
+                color: #ffffff;
+            }
+            #sidebar {
+                width: 60%;
+                float: left;
+            }
+            #lapwrap {
+                margin: 0 auto;
+                width: 40%;
+                overflow: auto;
+                height: 700px;
+            }
+            h1 {
+                font-size: 48px;
+                font-family: "Montserrat", sans-serif;
+                font-weight: 200;
+                text-align: center;
+                line-height: 59px;
+                padding: 0 64px;
+                margin: 0;
+            }
+            .stopwatch {
+                margin: auto;
+                display: grid;
+                justify-items: center;
+                grid-row-gap: 25px;
+                width: 100%;
+                padding: 25px;
+            }
+            .circle {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 270px;
+                width: 270px;
+                border: 5px solid;
+                border-radius: 50%;
+            }
+            .time {
+                font-family: "Roboto Mono", monospace;
+                font-weight: 300;
+                font-size: 40px;
+            }
+            .gold {
+                font-weight: 900;
+                color: #f2c94c;
+                text-shadow: 0 0 0px #fff, 0 0 50px #f2c94c;
+            }
+            .controls {
+                display: flex;
+                justify-content: space-between;
+                width: 187px;
+            }
+            button {
+                cursor: pointer;
+                background: transparent;
+                padding: 0;
+                border: none;
+                margin: 0;
+                outline: none;
+            }
+            #playButton {
+                display: block;
+            }
+            #pauseButton {
+                display: none;
+            }
+            #lap span{
+                width: 100%;
+                padding: 10px 20px;
+            }
+            .timer{
+                text-align: right;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="sidebar">
+            <div class="stopwatch">
+                <h1><span class="gold">STOPWATCH</span></h1>
+                <div class="circle">
+                    <span class="time" id="display">00:00:00</span>
+                </div>
+
+                <div class="controls">
+                    <button class="buttonPlay">
+                        <img id="playButton" src="play-button.svg" />
+                        <img id="pauseButton" src="pause-button.svg" />
+                    </button>
+                    <button class="buttonReset">
+                        <img id="resetButton" src="reset-button.svg" />
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="lapwrap">
+            <div id="lap"></div>
+        </div>
+        <script src="https://code.jquery.com/jquery-1.11.3.js"></script>
+        <script>
+            
+                var startTime;
+                var endTime;
+                var duration = 0;
+                var running = false;
+                var lap = [];
+                var lapCount = 0;
+                var lapInterval;
+
+                function start() {
+                    if (running)
+                        throw new Error("Stopwatch is Already running..");
+                    running = true;
+                    let start = Date.now() - duration;
+                    timerInterval = setInterval(function printTime() {
+                        duration = Date.now() - start;
+                        showTimer(timeToString(duration));
+                    }, 100);
+                    showButton("PAUSE");
+                    currentLap();
+                }
+
+                function currentLap() {
+                    clearInterval(lapInterval);
+                    lapCount++;
+                    let start = Date.now();
+                    $("#lap").prepend("<h2 class='lapp'><span>Lap" + lapCount + "</span><span class='timer' id='lap_" + lapCount + "'></span></h2>");
+                    let currentGrid = document.getElementById("lap_" + lapCount);
+                    lapInterval = setInterval(function printTime() {
+                        let dur = Date.now() - start;
+                        $("#lap_" + lapCount).text(timeToString(dur).toString());
+                    }, 10);
+                }
+
+                function stop() {
+                    currentLap();
+                }
+
+                function reset() {
+                    clearInterval(timerInterval);
+                    showButton("PLAY");
+                    lapCount = 0;
+                    $("#lap").html("");
+                    showTimer("00:00:00");
+                    startTime = null;
+                    endTime = null;
+                    duration = 0;
+                    running = false;
+                    lap = [];
+                }
+                
+                $("#playButton").click(()=>{
+                    start();
+                });
+                
+                $("#pauseButton").click(()=>{
+                    stop();
+                });
+                
+                $("#resetButton").click(()=>{
+                    reset();
+                });
+                
+                function timeToString(time) {
+                    let diffInHrs = time / 3600000;
+                    let hh = Math.floor(diffInHrs);
+
+                    let diffInMin = (diffInHrs - hh) * 60;
+                    let mm = Math.floor(diffInMin);
+
+                    let diffInSec = (diffInMin - mm) * 60;
+                    let ss = Math.floor(diffInSec);
+
+                    let diffInMs = (diffInSec - ss) * 100;
+                    let ms = Math.floor(diffInMs);
+
+                    let formattedMM = mm.toString().padStart(2, "0");
+                    let formattedSS = ss.toString().padStart(2, "0");
+                    let formattedMS = ms.toString().padStart(2, "0");
+
+                    return `${formattedMM}:${formattedSS}:${formattedMS}`;
+                }
+                
+                function showTimer(txt) {
+                    document.getElementById("display").innerHTML = txt;
+                }
+
+                function showButton(buttonKey) {
+                    const buttonToShow = buttonKey === "PLAY" ? playButton : pauseButton;
+                    const buttonToHide = buttonKey === "PLAY" ? pauseButton : playButton;
+                    buttonToShow.style.display = "block";
+                    buttonToHide.style.display = "none";
+                }
+        </script>
+    </body>
+</html>
